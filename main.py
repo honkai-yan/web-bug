@@ -10,17 +10,22 @@ header = {
 
 def main():
   resp = requests.get(targetUrl, headers=header)
-  print("获取目标网页...")
-  html = resp.text
-  print("转换对象中...")
-  bsSoup = bs(html, "lxml")
-  findTargetdElm("div", ["wrapper", "clearfix"], bsSoup)
+  wrapperElm = findTargetdElm("div", ["wrapper", "clearfix"], bs(resp.text, "lxml"))
+  if not wrapperElm: failAndExit()
+  listElm = findTargetdElm("ul", ["clearfix"], wrapperElm)
+  if not listElm: failAndExit()
+  print()
 
 def findTargetdElm(tagType: str, className: tuple, bsObj: bs):
   allTags = bsObj.find_all(tagType)
   for item in allTags:
-    if item["class"] and tupleEquals(item["class"], className):
+    if item.has_attr("class") and tupleEquals(item["class"], className):
       return item
+  return None
+
+def failAndExit(msg="爬取网页失败"):
+  print(msg)
+  exit(-1)
 
 if __name__ == "__main__":
   main()
